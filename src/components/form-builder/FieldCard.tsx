@@ -80,6 +80,11 @@ const FieldCard: React.FC<FieldCardProps> = ({ field, isSelected }) => {
               <i className="pi pi-asterisk" style={{ fontSize: '7px' }} /> Required
             </span>
           )}
+          {field.formulaConfig?.isCalculated && (
+            <span className="fb-badge bg-warning text-dark font-monospace" style={{ fontSize: '10px', padding: '2px 6px', borderRadius: '4px' }}>
+              <i className="pi pi-calculator me-1" style={{ fontSize: '9px' }} /> Formula
+            </span>
+          )}
         </div>
       </div>
 

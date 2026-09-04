@@ -174,6 +174,16 @@ export type FieldConfig =
   | SystemAttributeConfig
   | UserDefinedConfig;
 
+// ─── Formula Engine Config (Phase 3) ───
+
+export interface FormulaConfig {
+  isCalculated: boolean;
+  expression: string; // e.g. "[field_qty] * [field_price]" or "CONCAT([field_1], ' ', [field_2])"
+  returnType?: 'number' | 'string' | 'date' | 'boolean';
+  precision?: number;
+  readOnlyCalculated?: boolean;
+}
+
 // ─── Core Form Field ───
 
 export interface FormField {
@@ -193,6 +203,9 @@ export interface FormField {
   defaultValue?: string;
   displayOrder: number;
   isActive: boolean;
+
+  /** Formula calculation engine configuration */
+  formulaConfig?: FormulaConfig;
 
   /** Type-specific configuration */
   config: FieldConfig;

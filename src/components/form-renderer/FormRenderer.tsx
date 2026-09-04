@@ -12,6 +12,7 @@ import type { ChoiceOption, FieldType, FormDefinition, FormField, BranchingRule 
 import SignaturePad from './SignaturePad';
 import RankOrderRenderer from './RankOrderRenderer';
 import ScaleGridRenderer from './ScaleGridRenderer';
+import { evaluateFormula } from '../../utils/formulaEvaluator';
 
 interface FormRendererProps {
   formDefinition: FormDefinition;
@@ -589,6 +590,29 @@ const RenderedField: React.FC<{
   );
 };
 
+// ─── Formula Engine Runner ─────────────────────────────────────────────
+
+const FormikFormulaRunner: React.FC<{
+  fields: FormField[];
+  values: Record<string, any>;
+  setFieldValue: (fieldCode: string, value: any) => void;
+}> = ({ fields, values, setFieldValue }) => {
+  React.useEffect(() => {
+    const calculatedFields = fields.filter(
+      (f) => f.formulaConfig?.isCalculated && f.formulaConfig?.expression
+    );
+
+    calculatedFields.forEach((f) => {
+      const { value: res, error } = evaluateFormula(f.formulaConfig!.expression, values, fields);
+      if (!error && res !== undefined && res !== values[f.fieldCode]) {
+        setFieldValue(f.fieldCode, res);
+      }
+    });
+  }, [JSON.stringify(values), fields, setFieldValue]);
+
+  return null;
+};
+
 // ─── Form Renderer ──────────────────────────────────────────────────────
 
 const FormRenderer: React.FC<FormRendererProps> = ({ formDefinition }) => {
@@ -648,6 +672,7 @@ const FormRenderer: React.FC<FormRendererProps> = ({ formDefinition }) => {
 
             return (
               <FormikForm className="fb-preview__body">
+                <FormikFormulaRunner fields={activeFields} values={values} setFieldValue={setFieldValue} />
                 <Row>
                   {visibleFields.map((field) => (
                     <Col md={12} key={field.id}>

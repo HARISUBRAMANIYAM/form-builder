@@ -23,6 +23,7 @@ import CurrencyFieldConfig from './fields/CurrencyFieldConfig';
 import ConsentFieldConfig from './fields/ConsentFieldConfig';
 import UserDefinedFieldConfig from './fields/UserDefinedFieldConfig';
 import SystemAttributeFieldConfig from './fields/SystemAttributeFieldConfig';
+import { FormulaEditor } from './FormulaEditor';
 import { FieldType, type FormField } from '../../types/formBuilder.types';
 import { useShallow } from 'zustand/shallow';
 
@@ -381,23 +382,20 @@ const PropertiesPanel: React.FC = () => {
               </div>
 
               {/* ── Type-specific config ── */}
-              {([
-                FieldType.TEXT, FieldType.TEXTAREA, FieldType.NUMBER,
-                FieldType.DATE, FieldType.DATETIME, FieldType.TIME,
-                FieldType.SINGLE_CHOICE, FieldType.MULTIPLE_CHOICE,
-                FieldType.SINGLE_DROPDOWN, FieldType.MULTIPLE_DROPDOWN,
-                FieldType.EMAIL, FieldType.PHONE, FieldType.BOOLEAN,
-              ] as string[]).includes(values.fieldType) && (
-                <>
-                  <div className="fb-divider" />
-                  <div className="fb-properties__section">
-                    <div className="fb-properties__section-title">
-                      <i className="pi pi-cog" /> Field Settings
-                    </div>
-                    <TypeSpecificConfig field={{ ...selectedField, config: values.config as any }} />
-                  </div>
-                </>
-              )}
+              <div className="fb-divider" />
+              <div className="fb-properties__section">
+                <div className="fb-properties__section-title">
+                  <i className="pi pi-cog" /> Field Settings
+                </div>
+                <TypeSpecificConfig field={{ ...selectedField, config: values.config as any }} />
+              </div>
+
+              {/* ── Formula Builder Engine (Phase 3) ── */}
+              <FormulaEditor
+                field={selectedField}
+                otherFields={allFields.filter((f) => f.id !== selectedField.id)}
+                onChange={(formulaConfig) => updateField(selectedField.id, { formulaConfig })}
+              />
 
             </FormikForm>
           );
