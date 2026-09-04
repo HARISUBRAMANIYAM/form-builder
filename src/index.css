@@ -1,0 +1,146 @@
+/* ===================================================================
+   Form Builder — Global Design System
+   =================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ── CSS Custom Properties ──────────────────────────────────────── */
+:root {
+  /* Brand palette */
+  --fb-primary:        #4F46E5;
+  --fb-primary-light:  #6366F1;
+  --fb-primary-dark:   #3730A3;
+  --fb-primary-ghost:  rgba(79, 70, 229, 0.08);
+  --fb-primary-border: rgba(79, 70, 229, 0.25);
+
+  /* Surface */
+  --fb-bg:             #F8F9FF;
+  --fb-surface:        #FFFFFF;
+  --fb-surface-2:      #F1F3FA;
+  --fb-border:         #E4E6F0;
+  --fb-border-light:   #ECEEF7;
+
+  /* Text */
+  --fb-text-primary:   #0F172A;
+  --fb-text-secondary: #475569;
+  --fb-text-muted:     #94A3B8;
+  --fb-text-inverse:   #FFFFFF;
+
+  /* Status */
+  --fb-success:        #10B981;
+  --fb-success-light:  rgba(16, 185, 129, 0.1);
+  --fb-warning:        #F59E0B;
+  --fb-warning-light:  rgba(245, 158, 11, 0.1);
+  --fb-danger:         #EF4444;
+  --fb-danger-light:   rgba(239, 68, 68, 0.1);
+
+  /* Shadows */
+  --fb-shadow-xs:  0 1px 2px rgba(15, 23, 42, 0.06);
+  --fb-shadow-sm:  0 2px 8px rgba(15, 23, 42, 0.08);
+  --fb-shadow-md:  0 4px 16px rgba(15, 23, 42, 0.10);
+  --fb-shadow-lg:  0 8px 32px rgba(15, 23, 42, 0.12);
+  --fb-shadow-xl:  0 20px 60px rgba(15, 23, 42, 0.16);
+
+  /* Radius */
+  --fb-radius-sm:  6px;
+  --fb-radius-md:  10px;
+  --fb-radius-lg:  14px;
+  --fb-radius-xl:  20px;
+  --fb-radius-full: 9999px;
+
+  /* Transitions */
+  --fb-transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  --fb-transition-slow: 300ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Reset ───────────────────────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--fb-bg);
+  color: var(--fb-text-primary);
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── Scrollbar Styling ───────────────────────────────────────────── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--fb-border); border-radius: 99px; }
+::-webkit-scrollbar-thumb:hover { background: var(--fb-text-muted); }
+
+/* ── Bootstrap overrides ─────────────────────────────────────────── */
+.form-control,
+.form-select {
+  border-color: var(--fb-border);
+  border-radius: var(--fb-radius-sm);
+  font-size: 0.875rem;
+  transition: border-color var(--fb-transition), box-shadow var(--fb-transition);
+}
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--fb-primary);
+  box-shadow: 0 0 0 3px var(--fb-primary-ghost);
+  outline: none;
+}
+.form-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--fb-text-secondary);
+  margin-bottom: 5px;
+}
+.invalid-feedback {
+  font-size: 0.75rem;
+}
+.btn-primary {
+  background: var(--fb-primary);
+  border-color: var(--fb-primary);
+}
+.btn-primary:hover {
+  background: var(--fb-primary-dark);
+  border-color: var(--fb-primary-dark);
+}
+
+/* ── PrimeReact overrides ────────────────────────────────────────── */
+.p-dropdown,
+.p-multiselect,
+.p-calendar .p-inputtext {
+  border-color: var(--fb-border) !important;
+  border-radius: var(--fb-radius-sm) !important;
+  font-size: 0.875rem !important;
+  font-family: 'Inter', sans-serif !important;
+}
+.p-dropdown:not(.p-disabled):hover,
+.p-multiselect:not(.p-disabled):hover {
+  border-color: var(--fb-primary) !important;
+}
+.p-dropdown:not(.p-disabled).p-focus,
+.p-multiselect:not(.p-disabled).p-focus {
+  border-color: var(--fb-primary) !important;
+  box-shadow: 0 0 0 3px var(--fb-primary-ghost) !important;
+}
+.p-dropdown-panel .p-dropdown-item.p-highlight,
+.p-multiselect-panel .p-multiselect-item.p-highlight {
+  background: var(--fb-primary-ghost);
+  color: var(--fb-primary);
+}
+.p-checkbox .p-checkbox-box.p-highlight,
+.p-radiobutton .p-radiobutton-box.p-highlight {
+  background: var(--fb-primary);
+  border-color: var(--fb-primary);
+}
