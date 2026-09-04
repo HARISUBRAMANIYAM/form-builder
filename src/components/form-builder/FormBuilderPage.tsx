@@ -21,6 +21,7 @@ import { useFormBuilderStore } from '../../store/useFormBuilderStore';
 import FieldPalette from './FieldPalette';
 import FormCanvas from './FormCanvas';
 import PropertiesPanel from './PropertiesPanel';
+import BranchingRulesPanel from './BranchingRulesPanel';
 import FormRenderer from '../form-renderer/FormRenderer';
 
 import './FormBuilder.css';
@@ -118,15 +119,18 @@ const {
   reorderFields,
   resetForm,
   getFormDefinitionJson,
+  showBranchingPanel,
+  toggleBranchingPanel,
 } = useFormBuilderStore(
   useShallow((s) => ({
     formDefinition: s.formDefinition,
     setFormName: s.setFormName,
-    setFormDescription: s.setFormDescription,
     addField: s.addField,
     reorderFields: s.reorderFields,
     resetForm: s.resetForm,
     getFormDefinitionJson: s.getFormDefinitionJson,
+    showBranchingPanel: s.showBranchingPanel,
+    toggleBranchingPanel: s.toggleBranchingPanel,
   }))
 );
 
@@ -243,6 +247,19 @@ const {
           <span style={{ fontSize: '0.75rem', color: 'var(--fb-text-muted)' }}>
             {formDefinition.fields.length} fields
           </span>
+          {/* Branching button — only in builder view */}
+          {activeView === 'builder' && (
+            <button
+              className={`fb-action-btn ${showBranchingPanel ? 'fb-action-btn-primary' : 'fb-action-btn-secondary'}`}
+              onClick={() => { setActiveView('builder'); toggleBranchingPanel(); }}
+              title="Branching / Conditional Logic"
+            >
+              <i className="pi pi-code-branch" /> Branching
+              {(formDefinition.branchingRules ?? []).length > 0 && (
+                <span className="fb-count-badge">{formDefinition.branchingRules!.length}</span>
+              )}
+            </button>
+          )}
           <button className="fb-action-btn fb-action-btn-secondary" onClick={handleReset}>
             <i className="pi pi-refresh" /> Reset
           </button>
@@ -268,7 +285,8 @@ const {
               <FormCanvas />
             </SortableContext>
 
-            <PropertiesPanel />
+            {/* Right panel: Properties or Branching */}
+            {showBranchingPanel ? <BranchingRulesPanel /> : <PropertiesPanel />}
           </div>
 
           {/* Drag overlay while dragging from palette */}

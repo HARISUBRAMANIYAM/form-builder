@@ -5,12 +5,24 @@ import { Col, Form, Row } from 'react-bootstrap';
 import { FIELD_TYPE_MAP } from '../../constants/fieldTypeRegistry';
 import { useFormBuilderStore } from '../../store/useFormBuilderStore';
 
-// Sub-config components
+// Phase 1 sub-config components
 import TextFieldConfig from './fields/TextFieldConfig';
 import NumberFieldConfig from './fields/NumberFieldConfig';
 import DateFieldConfig from './fields/DateFieldConfig';
 import ChoiceFieldConfig from './fields/ChoiceFieldConfig';
 import DropdownFieldConfig from './fields/DropdownFieldConfig';
+// Phase 2 sub-config components
+import AttachmentFieldConfig from './fields/AttachmentFieldConfig';
+import PictureFieldConfig from './fields/PictureFieldConfig';
+import SignatureFieldConfig from './fields/SignatureFieldConfig';
+import RatingFieldConfig from './fields/RatingFieldConfig';
+import ScaleFieldConfig from './fields/ScaleFieldConfig';
+import RankOrderFieldConfig from './fields/RankOrderFieldConfig';
+import ScaleGridFieldConfig from './fields/ScaleGridFieldConfig';
+import CurrencyFieldConfig from './fields/CurrencyFieldConfig';
+import ConsentFieldConfig from './fields/ConsentFieldConfig';
+import UserDefinedFieldConfig from './fields/UserDefinedFieldConfig';
+import SystemAttributeFieldConfig from './fields/SystemAttributeFieldConfig';
 import { FieldType, type FormField } from '../../types/formBuilder.types';
 import { useShallow } from 'zustand/shallow';
 
@@ -61,6 +73,7 @@ const TypeSpecificConfig: React.FC<{ field: FormField }> = ({ field }) => {
   const { fieldType, config } = field;
 
   switch (fieldType) {
+    // ── Phase 1 ──────────────────────────────────────────────
     case FieldType.TEXT:
     case FieldType.TEXTAREA:
       return <TextFieldConfig config={config as any} />;
@@ -111,10 +124,48 @@ const TypeSpecificConfig: React.FC<{ field: FormField }> = ({ field }) => {
         </div>
       );
 
+    // ── Phase 2 ──────────────────────────────────────────────
+    case FieldType.ATTACHMENT:
+      return <AttachmentFieldConfig />;
+
+    case FieldType.PICTURE:
+      return <PictureFieldConfig />;
+
+    case FieldType.SIGNATURE:
+      return <SignatureFieldConfig />;
+
+    case FieldType.RATING:
+      return <RatingFieldConfig />;
+
+    case FieldType.SCALE_SINGLE:
+      return <ScaleFieldConfig />;
+
+    case FieldType.RANK_ORDER:
+      return <RankOrderFieldConfig />;
+
+    case FieldType.SCALE_MULTI_GRID:
+      return <ScaleGridFieldConfig isCheckbox={false} />;
+
+    case FieldType.SCALE_CHECKBOX_GRID:
+      return <ScaleGridFieldConfig isCheckbox={true} />;
+
+    case FieldType.CURRENCY:
+      return <CurrencyFieldConfig />;
+
+    case FieldType.CONSENT:
+      return <ConsentFieldConfig />;
+
+    case FieldType.USER_DEFINED:
+      return <UserDefinedFieldConfig />;
+
+    case FieldType.SYSTEM_ATTRIBUTE:
+      return <SystemAttributeFieldConfig />;
+
     default:
       return null;
   }
 };
+
 
 // ─── Properties Panel ────────────────────────────────────────────────
 

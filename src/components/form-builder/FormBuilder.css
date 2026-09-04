@@ -748,3 +748,79 @@
 .fb-properties__scroll {
   animation: slideInRight 0.2s ease;
 }
+
+/* ── Phase 2 Additions ────────────────────────────────────────────── */
+
+/* Branching count badge */
+.fb-count-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  background: white;
+  color: var(--fb-primary);
+  border-radius: 99px;
+  font-size: 0.6rem;
+  font-weight: 700;
+  margin-left: 4px;
+}
+
+/* Warning and success light backgrounds */
+:root {
+  --fb-warning-light: #fef3c7;
+  --fb-warning: #D97706;
+  --fb-success: #059669;
+  --fb-success-light: #d1fae5;
+  --fb-danger-light: rgba(239, 68, 68, 0.1);
+}
+
+/* Rating stars color override */
+.fb-preview .p-rating .p-rating-item.p-rating-item-active .p-rating-icon {
+  color: #F59E0B !important;
+}
+
+/* Signature canvas cursor */
+.fb-signature-canvas {
+  cursor: crosshair;
+}
+
+/* Scale grid table hover row */
+.fb-scale-grid tr:hover td {
+  background: var(--fb-primary-ghost);
+}
+
+/* Palette scroll area */
+.fb-palette__scroll {
+  flex: 1;
+  overflow-y: auto;
+  padding: 6px 12px 12px;
+}
+
+/* Larger palette grid for Phase 2 (more items) */
+@media (max-height: 700px) {
+  .fb-palette__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* Consent field checkbox */
+.fb-preview__field-group input[type="checkbox"] {
+  accent-color: var(--fb-primary);
+}
+
+/* Rank order drag handle cursor */
+.fb-rank-item {
+  cursor: grab;
+}
+.fb-rank-item:active {
+  cursor: grabbing;
+}
+
+/* Attachment drop zone hover */
+.fb-attachment-drop:hover {
+  border-color: var(--fb-primary) !important;
+  background: var(--fb-primary-ghost) !important;
+}
+
