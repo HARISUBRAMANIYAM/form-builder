@@ -181,48 +181,68 @@ const BranchingRulesPanel: React.FC = () => {
                 size="sm"
                 style={{ width: 'auto', fontSize: '0.75rem' }}
                 value={rule.action}
-                onChange={(e) => updateBranchingRule(rule.id, { action: e.target.value as 'show' | 'hide' })}
+                onChange={(e) => updateBranchingRule(rule.id, { action: e.target.value as any })}
               >
-                <option value="show">Show</option>
-                <option value="hide">Hide</option>
+                <option value="show">Show Fields</option>
+                <option value="hide">Hide Fields</option>
+                <option value="jump_to_page">⚡ Jump to Page</option>
               </Form.Select>
-              <span style={{ fontSize: '0.72rem', color: 'var(--fb-text-muted)' }}>these fields:</span>
             </div>
 
-            {/* Target field checkboxes */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-              {inputFields
-                .filter((f) => !rule.conditions.some((c) => c.fieldId === f.id))
-                .map((f) => (
-                  <label
-                    key={f.id}
-                    style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      cursor: 'pointer',
-                      padding: '3px 6px',
-                      borderRadius: 5,
-                      background: rule.targetFieldIds.includes(f.id) ? 'var(--fb-primary-ghost)' : 'transparent',
-                      transition: 'background 0.15s',
-                    }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={rule.targetFieldIds.includes(f.id)}
-                      onChange={() => toggleBranchingTargetField(rule.id, f.id)}
-                      style={{ accentColor: 'var(--fb-primary)', flexShrink: 0 }}
-                    />
-                    <span style={{
-                      fontSize: '0.775rem',
-                      color: rule.targetFieldIds.includes(f.id) ? 'var(--fb-primary)' : 'var(--fb-text-secondary)',
-                      fontWeight: rule.targetFieldIds.includes(f.id) ? 600 : 400,
-                    }}>
-                      {f.fieldName}
-                    </span>
-                  </label>
-                ))}
-            </div>
+            {/* Target Page Selector for jump_to_page action */}
+            {rule.action === 'jump_to_page' ? (
+              <div style={{ marginTop: 6 }}>
+                <Form.Label style={{ fontSize: '0.72rem', color: 'var(--fb-text-muted)' }}>Target Page / Step:</Form.Label>
+                <Form.Select
+                  size="sm"
+                  style={{ fontSize: '0.75rem' }}
+                  value={rule.targetPageId || ''}
+                  onChange={(e) => updateBranchingRule(rule.id, { targetPageId: e.target.value })}
+                >
+                  <option value="">— Select Target Page —</option>
+                  {(formDefinition.pages ?? []).map((p, pIdx) => (
+                    <option key={p.id} value={p.id}>
+                      Step {pIdx + 1}: {p.title}
+                    </option>
+                  ))}
+                </Form.Select>
+              </div>
+            ) : (
+              /* Target field checkboxes for show/hide actions */
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                {inputFields
+                  .filter((f) => !rule.conditions.some((c) => c.fieldId === f.id))
+                  .map((f) => (
+                    <label
+                      key={f.id}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 6,
+                        cursor: 'pointer',
+                        padding: '3px 6px',
+                        borderRadius: 5,
+                        background: rule.targetFieldIds.includes(f.id) ? 'var(--fb-primary-ghost)' : 'transparent',
+                        transition: 'background 0.15s',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={rule.targetFieldIds.includes(f.id)}
+                        onChange={() => toggleBranchingTargetField(rule.id, f.id)}
+                        style={{ accentColor: 'var(--fb-primary)', flexShrink: 0 }}
+                      />
+                      <span style={{
+                        fontSize: '0.775rem',
+                        color: rule.targetFieldIds.includes(f.id) ? 'var(--fb-primary)' : 'var(--fb-text-secondary)',
+                        fontWeight: rule.targetFieldIds.includes(f.id) ? 600 : 400,
+                      }}>
+                        {f.fieldName}
+                      </span>
+                    </label>
+                  ))}
+              </div>
+            )}
 
             {rule.targetFieldIds.length === 0 && (
               <div style={{ fontSize: '0.7rem', color: 'var(--fb-warning)', marginTop: 4 }}>

@@ -1,5 +1,4 @@
 import { FieldType, type FieldCategory, type FieldConfig } from "../types/formBuilder.types";
-
 export interface FieldTypeRegistryEntry {
   type: FieldType;
   label: string;
@@ -10,6 +9,7 @@ export interface FieldTypeRegistryEntry {
   defaultConfig: FieldConfig;
 }
 
+
 export const FIELD_TYPE_REGISTRY: FieldTypeRegistryEntry[] = [
   // ── Basic ───────────────────────────────────────────────────
   { type: FieldType.TEXT, label: 'Text', description: 'Single-line text input', icon: 'pi pi-pencil', category: 'Basic', phase: 1, defaultConfig: { type: FieldType.TEXT, maxLength: 255 } },
@@ -17,7 +17,7 @@ export const FIELD_TYPE_REGISTRY: FieldTypeRegistryEntry[] = [
   { type: FieldType.NUMBER, label: 'Number', description: 'Numeric input with optional decimals', icon: 'pi pi-hashtag', category: 'Basic', phase: 1, defaultConfig: { type: FieldType.NUMBER, allowDecimal: false } },
   { type: FieldType.EMAIL, label: 'Email', description: 'Email address with format validation', icon: 'pi pi-envelope', category: 'Basic', phase: 1, defaultConfig: { type: FieldType.EMAIL } },
   { type: FieldType.PHONE, label: 'Phone', description: 'Phone number input', icon: 'pi pi-phone', category: 'Basic', phase: 1, defaultConfig: { type: FieldType.PHONE } },
-  { type: FieldType.BOOLEAN, label: 'Toggle / Yes-No', description: 'True/False toggle switch', icon: 'pi pi-toggle-on', category: 'Basic', phase: 1, defaultConfig: { type: FieldType.BOOLEAN } },
+  { type: FieldType.BOOLEAN, label: 'Toggle / Yes-No', description: 'True/False toggle switch', icon: 'bi bi-toggle-on', category: 'Basic', phase: 1, defaultConfig: { type: FieldType.BOOLEAN } },
   { type: FieldType.CURRENCY, label: 'Currency', description: 'Monetary amount with currency selector', icon: 'pi pi-dollar', category: 'Basic', phase: 2, defaultConfig: { type: FieldType.CURRENCY, currencies: ['USD', 'EUR', 'GBP', 'INR'], allowDecimal: true } },
 
   // ── Date & Time ─────────────────────────────────────────────

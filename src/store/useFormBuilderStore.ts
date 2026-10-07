@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import { v4 as uuidv4 } from 'uuid';
 import { FIELD_TYPE_MAP } from '../constants/fieldTypeRegistry';
-import type { FieldType, FormField, FormDefinition, BranchingRule, BranchingCondition } from '../types/formBuilder.types';
+import type { FieldType, FormField, FormDefinition, BranchingRule, BranchingCondition, FormPage, FormSection } from '../types/formBuilder.types';
 
 // ─────────────────────────────────────────────────────────────
 //  Helpers
@@ -9,7 +9,7 @@ import type { FieldType, FormField, FormDefinition, BranchingRule, BranchingCond
 
 const now = () => new Date().toISOString();
 
-const defaultFieldForType = (type: FieldType, order: number): FormField => {
+const defaultFieldForType = (type: FieldType, order: number, pageId?: string, sectionId?: string): FormField => {
   const entry = FIELD_TYPE_MAP.get(type);
   const label = entry?.label ?? type;
   const code = `${type.toLowerCase()}_${Date.now()}`;
@@ -18,6 +18,9 @@ const defaultFieldForType = (type: FieldType, order: number): FormField => {
     fieldCode: code,
     fieldName: label,
     fieldType: type,
+    pageId,
+    sectionId,
+    columnSpan: 12,
     isMandatory: false,
     helpText: '',
     placeholder: '',
@@ -35,14 +38,26 @@ const defaultFieldForType = (type: FieldType, order: number): FormField => {
 interface FormBuilderState {
   formDefinition: FormDefinition;
   selectedFieldId: string | null;
+  activePageId: string;
   showBranchingPanel: boolean;
 
   // Form metadata
   setFormName: (name: string) => void;
   setFormDescription: (desc: string) => void;
 
+  // Page CRUD
+  setActivePage: (pageId: string) => void;
+  addPage: () => void;
+  removePage: (pageId: string) => void;
+  updatePage: (pageId: string, patch: Partial<FormPage>) => void;
+
+  // Section CRUD
+  addSection: (pageId?: string) => void;
+  removeSection: (sectionId: string) => void;
+  updateSection: (sectionId: string, patch: Partial<FormSection>) => void;
+
   // Field CRUD
-  addField: (type: FieldType) => void;
+  addField: (type: FieldType, sectionId?: string) => void;
   removeField: (id: string) => void;
   duplicateField: (id: string) => void;
   updateField: (id: string, patch: Partial<Omit<FormField, 'id' | 'fieldType'>>) => void;
@@ -84,6 +99,7 @@ const makeInitialDefinition = (): FormDefinition => ({
   createdAt: now(),
   updatedAt: now(),
   fields: [],
+  pages: [{ id: 'page-1', title: 'Page 1', displayOrder: 0 }],
   sections: [],
   branchingRules: [],
 });
@@ -95,6 +111,7 @@ const makeInitialDefinition = (): FormDefinition => ({
 export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
   formDefinition: makeInitialDefinition(),
   selectedFieldId: null,
+  activePageId: 'page-1',
   showBranchingPanel: false,
 
   // ── Metadata ────────────────────────────────────────────────
@@ -104,10 +121,95 @@ export const useFormBuilderStore = create<FormBuilderState>((set, get) => ({
   setFormDescription: (desc) =>
     set((s) => ({ formDefinition: { ...s.formDefinition, formDescription: desc, updatedAt: now() } })),
 
-  // ── Field CRUD ──────────────────────────────────────────────
-  addField: (type) => {
+  // ── Page CRUD ───────────────────────────────────────────────
+  setActivePage: (pageId) => set({ activePageId: pageId, selectedFieldId: null }),
+
+  addPage: () => {
     const { formDefinition } = get();
-    const newField = defaultFieldForType(type, formDefinition.fields.length);
+    const pages = formDefinition.pages ?? [];
+    const newPage: FormPage = {
+      id: `page-${uuidv4().substring(0, 8)}`,
+      title: `Page ${pages.length + 1}`,
+      displayOrder: pages.length,
+    };
+    set((s) => ({
+      formDefinition: {
+        ...s.formDefinition,
+        pages: [...(s.formDefinition.pages ?? []), newPage],
+        updatedAt: now(),
+      },
+      activePageId: newPage.id,
+      selectedFieldId: null,
+    }));
+  },
+
+  removePage: (pageId) => {
+    const { formDefinition, activePageId } = get();
+    const pages = (formDefinition.pages ?? []).filter((p) => p.id !== pageId);
+    if (pages.length === 0) return; // Keep at least one page
+    const fields = formDefinition.fields.filter((f) => f.pageId !== pageId);
+    const sections = (formDefinition.sections ?? []).filter((sec) => sec.pageId !== pageId);
+    const newActivePageId = activePageId === pageId ? pages[0].id : activePageId;
+    set((s) => ({
+      formDefinition: { ...s.formDefinition, pages, fields, sections, updatedAt: now() },
+      activePageId: newActivePageId,
+      selectedFieldId: null,
+    }));
+  },
+
+  updatePage: (pageId, patch) =>
+    set((s) => ({
+      formDefinition: {
+        ...s.formDefinition,
+        pages: (s.formDefinition.pages ?? []).map((p) => (p.id === pageId ? { ...p, ...patch } : p)),
+        updatedAt: now(),
+      },
+    })),
+
+  // ── Section CRUD ────────────────────────────────────────────
+  addSection: (pageId) => {
+    const targetPageId = pageId || get().activePageId;
+    const { formDefinition } = get();
+    const pageSections = (formDefinition.sections ?? []).filter((sec) => sec.pageId === targetPageId);
+    const newSection: FormSection = {
+      id: `sec-${uuidv4().substring(0, 8)}`,
+      pageId: targetPageId,
+      title: `Section ${pageSections.length + 1}`,
+      displayOrder: pageSections.length,
+      isCollapsible: true,
+      defaultCollapsed: false,
+    };
+    set((s) => ({
+      formDefinition: {
+        ...s.formDefinition,
+        sections: [...(s.formDefinition.sections ?? []), newSection],
+        updatedAt: now(),
+      },
+    }));
+  },
+
+  removeSection: (sectionId) =>
+    set((s) => {
+      const sections = (s.formDefinition.sections ?? []).filter((sec) => sec.id !== sectionId);
+      const fields = s.formDefinition.fields.map((f) => (f.sectionId === sectionId ? { ...f, sectionId: undefined } : f));
+      return {
+        formDefinition: { ...s.formDefinition, sections, fields, updatedAt: now() },
+      };
+    }),
+
+  updateSection: (sectionId, patch) =>
+    set((s) => ({
+      formDefinition: {
+        ...s.formDefinition,
+        sections: (s.formDefinition.sections ?? []).map((sec) => (sec.id === sectionId ? { ...sec, ...patch } : sec)),
+        updatedAt: now(),
+      },
+    })),
+
+  // ── Field CRUD ──────────────────────────────────────────────
+  addField: (type, sectionId) => {
+    const { formDefinition, activePageId } = get();
+    const newField = defaultFieldForType(type, formDefinition.fields.length, activePageId, sectionId);
     set((s) => ({
       formDefinition: { ...s.formDefinition, fields: [...s.formDefinition.fields, newField], updatedAt: now() },
       selectedFieldId: newField.id,

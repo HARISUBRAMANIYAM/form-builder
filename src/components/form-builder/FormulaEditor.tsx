@@ -111,10 +111,10 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
   ];
 
   return (
-    <div className="formula-editor border rounded p-3 bg-dark-subtle text-light mt-3">
-      <div className="d-flex align-items-center justify-content-between mb-3">
-        <label className="fw-semibold text-warning m-0">
-          <i className="pi pi-calculator me-2"></i>Formula & Calculation
+    <div className="fb-formula-editor">
+      <div className="fb-formula-editor__header">
+        <label className="fb-formula-editor__title m-0">
+          <i className="pi pi-calculator" /> Formula & Calculation
         </label>
         <InputSwitch checked={isEnabled} onChange={(e) => handleToggle(e.value ?? false)} />
       </div>
@@ -122,7 +122,7 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
       {isEnabled && (
         <div className="formula-controls">
           <div className="mb-3">
-            <label className="form-label small text-muted">Insert Field Variable</label>
+            <label className="form-label">Insert Field Variable</label>
             <Dropdown
               options={fieldOptions}
               placeholder="Select field to insert..."
@@ -136,60 +136,62 @@ export const FormulaEditor: React.FC<FormulaEditorProps> = ({
           </div>
 
           <div className="mb-3">
-            <label className="form-label small text-muted">Quick Operators & Functions</label>
+            <label className="form-label">Quick Operators & Functions</label>
             <div className="d-flex flex-wrap gap-1 mb-2">
               {['+', '-', '*', '/', '(', ')', '%'].map((op) => (
-                <Button
+                <button
                   key={op}
                   type="button"
-                  label={op}
-                  className="p-button-sm p-button-outlined p-button-secondary py-1 px-2"
+                  className="fb-formula-chip"
                   onClick={() => insertToken(` ${op} `)}
-                />
+                >
+                  {op}
+                </button>
               ))}
             </div>
 
             <div className="d-flex flex-wrap gap-1">
               {functionPresets.map((fn) => (
-                <Button
+                <button
                   key={fn.label}
                   type="button"
-                  label={fn.label}
-                  className="p-button-sm p-button-outlined p-button-info py-0 px-2 text-xs"
+                  className="fb-formula-chip"
                   onClick={() => insertToken(fn.token)}
-                />
+                >
+                  {fn.label}
+                </button>
               ))}
             </div>
           </div>
 
           <div className="mb-3">
-            <label className="form-label small text-muted">Formula Expression</label>
+            <label className="form-label">Formula Expression</label>
             <InputTextarea
               value={expression}
               onChange={(e) => handleExpressionChange(e.target.value)}
               rows={3}
-              className="w-100 p-inputtext-sm font-monospace text-warning bg-dark"
+              className="w-100 p-inputtext-sm font-monospace form-control"
               placeholder="e.g. [qty_field] * [price_field]"
             />
           </div>
 
           {/* Test Evaluator Preview */}
-          <div className="mb-3 p-2 rounded bg-black text-light small border border-secondary">
-            <div className="text-muted mb-1" style={{ fontSize: '0.75rem' }}>Formula Preview (Live Test):</div>
+          <div className="fb-formula-preview mb-3">
+            <div className="text-muted mb-1" style={{ fontSize: '0.72rem' }}>Formula Preview (Live Test):</div>
             {testResult.error ? (
               <span className="text-danger">
-                <i className="pi pi-exclamation-triangle me-1"></i>
+                <i className="pi pi-exclamation-triangle me-1" />
                 {testResult.error}
               </span>
             ) : (
-              <span className="text-success fw-bold font-monospace">
+              <span style={{ color: 'var(--fb-success)', fontWeight: 600 }}>
                 Result = {JSON.stringify(testResult.value)}
               </span>
             )}
           </div>
 
-          <div className="d-flex align-items-center justify-content-between mt-2 pt-2 border-top border-secondary">
-            <span className="small text-muted">Read-only in Form</span>
+          <div className="d-flex align-items-center justify-content-between pt-2 border-top border-light">
+            <span className="form-label m-0">Read-only in Form</span>
             <InputSwitch checked={readOnlyCalculated} onChange={(e) => handleReadOnlyChange(e.value ?? false)} />
           </div>
         </div>

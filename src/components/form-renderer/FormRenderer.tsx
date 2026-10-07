@@ -12,7 +12,7 @@ import type { ChoiceOption, FieldType, FormDefinition, FormField, BranchingRule 
 import SignaturePad from './SignaturePad';
 import RankOrderRenderer from './RankOrderRenderer';
 import ScaleGridRenderer from './ScaleGridRenderer';
-import { evaluateFormula } from '../../utils/formulaEvaluator';
+// import { evaluateFormula } from '../../utils/formulaEvaluator';
 
 interface FormRendererProps {
   formDefinition: FormDefinition;
@@ -38,12 +38,12 @@ const evaluateBranchingRules = (
       const condValue = String(cond.value ?? '').trim().toLowerCase();
 
       switch (cond.operator) {
-        case 'equals':       return fieldValue === condValue;
-        case 'not_equals':   return fieldValue !== condValue;
-        case 'contains':     return fieldValue.includes(condValue);
+        case 'equals': return fieldValue === condValue;
+        case 'not_equals': return fieldValue !== condValue;
+        case 'contains': return fieldValue.includes(condValue);
         case 'greater_than': return parseFloat(fieldValue) > parseFloat(condValue);
-        case 'less_than':    return parseFloat(fieldValue) < parseFloat(condValue);
-        default:             return false;
+        case 'less_than': return parseFloat(fieldValue) < parseFloat(condValue);
+        default: return false;
       }
     });
 
@@ -76,7 +76,7 @@ const buildYupSchema = (fields: FormField[]) => {
         let s = Yup.string().nullable();
         if (field.isMandatory) s = s.required(`${field.fieldName} is required`);
         if (cfg?.maxLength) s = s.max(cfg.maxLength, `Max ${cfg.maxLength} characters`);
-        if (cfg?.regex) { try { s = s.matches(new RegExp(cfg.regex), 'Invalid format'); } catch {} }
+        if (cfg?.regex) { try { s = s.matches(new RegExp(cfg.regex), 'Invalid format'); } catch { } }
         shape[field.fieldCode] = s; break;
       }
       case 'NUMBER' as FieldType: {
@@ -172,18 +172,18 @@ const buildInitialValues = (fields: FormField[]): Record<string, any> => {
     switch (field.fieldType as FieldType) {
       case 'MULTIPLE_CHOICE' as FieldType:
       case 'MULTIPLE_DROPDOWN' as FieldType:
-      case 'RANK_ORDER' as FieldType:      vals[field.fieldCode] = []; break;
-      case 'BOOLEAN' as FieldType:         vals[field.fieldCode] = false; break;
-      case 'CONSENT' as FieldType:         vals[field.fieldCode] = false; break;
-      case 'DATE' as FieldType:            vals[field.fieldCode] = cfg?.quickDefault === 'CURRENTDATE' ? new Date() : null; break;
-      case 'DATETIME' as FieldType:        vals[field.fieldCode] = cfg?.quickDefault === 'CURRENTDATETIME' ? new Date() : null; break;
-      case 'TIME' as FieldType:            vals[field.fieldCode] = cfg?.quickDefault === 'CURRENTTIME' ? new Date() : null; break;
-      case 'SCALE_SINGLE' as FieldType:    vals[field.fieldCode] = cfg?.min ?? 1; break;
-      case 'RATING' as FieldType:          vals[field.fieldCode] = null; break;
-      case 'CURRENCY' as FieldType:        vals[field.fieldCode] = null; break;
+      case 'RANK_ORDER' as FieldType: vals[field.fieldCode] = []; break;
+      case 'BOOLEAN' as FieldType: vals[field.fieldCode] = false; break;
+      case 'CONSENT' as FieldType: vals[field.fieldCode] = false; break;
+      case 'DATE' as FieldType: vals[field.fieldCode] = cfg?.quickDefault === 'CURRENTDATE' ? new Date() : null; break;
+      case 'DATETIME' as FieldType: vals[field.fieldCode] = cfg?.quickDefault === 'CURRENTDATETIME' ? new Date() : null; break;
+      case 'TIME' as FieldType: vals[field.fieldCode] = cfg?.quickDefault === 'CURRENTTIME' ? new Date() : null; break;
+      case 'SCALE_SINGLE' as FieldType: vals[field.fieldCode] = cfg?.min ?? 1; break;
+      case 'RATING' as FieldType: vals[field.fieldCode] = null; break;
+      case 'CURRENCY' as FieldType: vals[field.fieldCode] = null; break;
       case 'SCALE_MULTI_GRID' as FieldType:
       case 'SCALE_CHECKBOX_GRID' as FieldType: vals[field.fieldCode] = {}; break;
-      case 'SIGNATURE' as FieldType:       vals[field.fieldCode] = ''; break;
+      case 'SIGNATURE' as FieldType: vals[field.fieldCode] = ''; break;
       case 'USER_DEFINED' as FieldType:
       case 'SYSTEM_ATTRIBUTE' as FieldType: /* no user value */ break;
       default: vals[field.fieldCode] = field.defaultValue ?? '';
@@ -590,39 +590,83 @@ const RenderedField: React.FC<{
   );
 };
 
-// ─── Formula Engine Runner ─────────────────────────────────────────────
+// ─── Collapsible Section Renderer for Preview ─────────────────────────
 
-const FormikFormulaRunner: React.FC<{
-  fields: FormField[];
-  values: Record<string, any>;
-  setFieldValue: (fieldCode: string, value: any) => void;
-}> = ({ fields, values, setFieldValue }) => {
-  React.useEffect(() => {
-    const calculatedFields = fields.filter(
-      (f) => f.formulaConfig?.isCalculated && f.formulaConfig?.expression
-    );
+const RenderedSection: React.FC<{
+  sectionTitle: string;
+  sectionDesc?: string;
+  isCollapsible?: boolean;
+  children: React.ReactNode;
+}> = ({ sectionTitle, sectionDesc, isCollapsible = true, children }) => {
+  const [collapsed, setCollapsed] = React.useState(false);
 
-    calculatedFields.forEach((f) => {
-      const { value: res, error } = evaluateFormula(f.formulaConfig!.expression, values, fields);
-      if (!error && res !== undefined && res !== values[f.fieldCode]) {
-        setFieldValue(f.fieldCode, res);
-      }
-    });
-  }, [JSON.stringify(values), fields, setFieldValue]);
-
-  return null;
+  return (
+    <div className="fb-rendered-section">
+      <div className="fb-rendered-section__header">
+        <div className="d-flex align-items-center gap-2">
+          <div
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              background: 'var(--fb-primary-ghost)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'var(--fb-primary)',
+              fontSize: 12,
+            }}
+          >
+            <i className="pi pi-folder" />
+          </div>
+          <h6 className="fb-rendered-section__title">{sectionTitle}</h6>
+        </div>
+        {isCollapsible && (
+          <button
+            type="button"
+            className="fb-icon-btn"
+            onClick={() => setCollapsed(!collapsed)}
+            title={collapsed ? 'Expand' : 'Collapse'}
+          >
+            <i className={`pi ${collapsed ? 'pi-chevron-down' : 'pi-chevron-up'}`} />
+          </button>
+        )}
+      </div>
+      {sectionDesc && <p style={{ fontSize: '0.8rem', color: 'var(--fb-text-muted)', marginBottom: 12 }}>{sectionDesc}</p>}
+      {!collapsed && <div>{children}</div>}
+    </div>
+  );
 };
 
-// ─── Form Renderer ──────────────────────────────────────────────────────
+// ─── Form Renderer Component ───────────────────────────────────────────
 
 const FormRenderer: React.FC<FormRendererProps> = ({ formDefinition }) => {
   const toast = React.useRef<Toast>(null);
+  const [activeStepIndex, setActiveStepIndex] = React.useState<number>(0);
+
+  const pages = useMemo(
+    () => formDefinition.pages && formDefinition.pages.length > 0
+      ? formDefinition.pages
+      : [{ id: 'page-1', title: 'Page 1', displayOrder: 0 }],
+    [formDefinition.pages]
+  );
+
+  const sections = useMemo(
+    () => formDefinition.sections ?? [],
+    [formDefinition.sections]
+  );
+
   const activeFields = useMemo(
     () => formDefinition.fields.filter((f) => f.isActive).sort((a, b) => a.displayOrder - b.displayOrder),
     [formDefinition.fields]
   );
+
   const validationSchema = useMemo(() => buildYupSchema(activeFields), [activeFields]);
   const initialValues = useMemo(() => buildInitialValues(activeFields), [activeFields]);
+
+  const currentPage = pages[activeStepIndex] || pages[0];
+  const isFirstStep = activeStepIndex === 0;
+  const isLastStep = activeStepIndex === pages.length - 1;
 
   const handleSubmit = (
     values: typeof initialValues,
@@ -654,28 +698,188 @@ const FormRenderer: React.FC<FormRendererProps> = ({ formDefinition }) => {
     <div className="fb-preview">
       <Toast ref={toast} />
       <div className="fb-preview__card">
+        {/* Wizard Stepper Progress Bar */}
+        {pages.length > 1 && (
+          <div className="fb-wizard-stepper">
+            <div className="d-flex align-items-center justify-content-between mb-1">
+              <span style={{ fontSize: '0.8rem', color: 'var(--fb-text-secondary)' }}>
+                Step {activeStepIndex + 1} of {pages.length}: <strong style={{ color: 'var(--fb-primary)' }}>{currentPage.title}</strong>
+              </span>
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, color: 'var(--fb-primary)' }}>
+                {Math.round(((activeStepIndex + 1) / pages.length) * 100)}% Completed
+              </span>
+            </div>
+
+            <div className="fb-wizard-progress-bar">
+              <div
+                className="fb-wizard-progress-fill"
+                style={{ width: `${((activeStepIndex + 1) / pages.length) * 100}%` }}
+              />
+            </div>
+
+            {/* Stepper Dots */}
+            <div className="d-flex justify-content-between mt-3 px-1">
+              {pages.map((p, idx) => (
+                <div
+                  key={p.id}
+                  className="d-flex align-items-center gap-1"
+                  style={{
+                    fontSize: '0.78rem',
+                    fontWeight: idx === activeStepIndex ? 700 : 500,
+                    color: idx === activeStepIndex
+                      ? 'var(--fb-primary)'
+                      : idx < activeStepIndex
+                        ? 'var(--fb-success)'
+                        : 'var(--fb-text-muted)',
+                    cursor: idx <= activeStepIndex ? 'pointer' : 'default',
+                  }}
+                  onClick={() => idx <= activeStepIndex && setActiveStepIndex(idx)}
+                >
+                  <i
+                    className={`pi ${idx < activeStepIndex
+                      ? 'pi-check-circle'
+                      : idx === activeStepIndex
+                        ? 'pi-circle-fill'
+                        : 'pi-circle'
+                      }`}
+                    style={{
+                      fontSize: 12,
+                      color: idx === activeStepIndex
+                        ? 'var(--fb-primary)'
+                        : idx < activeStepIndex
+                          ? 'var(--fb-success)'
+                          : 'var(--fb-text-muted)',
+                    }}
+                  />
+                  <span>{p.title}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="fb-preview__header">
           <h2>{formDefinition.formName || 'Untitled Form'}</h2>
-          {formDefinition.formDescription && <p>{formDefinition.formDescription}</p>}
+          {currentPage.description ? (
+            <p className="text-info">{currentPage.description}</p>
+          ) : (
+            formDefinition.formDescription && <p>{formDefinition.formDescription}</p>
+          )}
         </div>
 
         <Formik initialValues={initialValues} validationSchema={validationSchema} onSubmit={handleSubmit} enableReinitialize>
-          {({ touched, errors, values, setFieldValue, handleBlur }) => {
-            // ── Evaluate branching rules ──
+          {({ touched, errors, values, setFieldValue, setTouched, validateForm, handleBlur }) => {
+            // ── Evaluate Branching Rules (Show/Hide & Page Jumps) ──
             const hiddenIds = evaluateBranchingRules(
               formDefinition.branchingRules ?? [],
               activeFields,
               values
             );
 
+            // Filter visible fields
             const visibleFields = activeFields.filter((f) => !hiddenIds.has(f.id));
+
+            // Fields belonging to CURRENT active page
+            const currentStepFields = visibleFields.filter(
+              (f) => (f.pageId ? f.pageId === currentPage.id : activeStepIndex === 0)
+            );
+
+            // Group current step fields into Sections
+            const currentStepSections = sections.filter((s) => s.pageId === currentPage.id);
+            const unsectionedFields = currentStepFields.filter((f) => !f.sectionId);
+
+            // ── Handle Next Step Navigation with Validation & Page Jumps ──
+            const handleNextStep = async () => {
+              const validationErrors = await validateForm();
+
+              // Find errors on fields belonging to the current step
+              const stepHasErrors = currentStepFields.some((f) => Boolean(validationErrors[f.fieldCode]));
+
+              if (stepHasErrors) {
+                // Touch all fields on current step to trigger visual red errors
+                const touchedPatch: Record<string, boolean> = {};
+                currentStepFields.forEach((f) => {
+                  touchedPatch[f.fieldCode] = true;
+                });
+                setTouched({ ...touched, ...touchedPatch });
+                toast.current?.show({
+                  severity: 'error',
+                  summary: 'Validation Error',
+                  detail: 'Please fix all required fields on this step before proceeding.',
+                  life: 3000,
+                });
+                return;
+              }
+
+              // Check if any Branching Rule triggers a Page Jump
+              let targetStepIndex = activeStepIndex + 1;
+              const jumpRule = (formDefinition.branchingRules ?? []).find((r) => {
+                if (r.action !== 'jump_to_page' || !r.targetPageId) return false;
+                // Evaluate conditions
+                const match = r.conditions.every((cond) => {
+                  const src = activeFields.find((f) => f.id === cond.fieldId);
+                  if (!src) return false;
+                  const val = String(values[src.fieldCode] ?? '').trim().toLowerCase();
+                  return val === String(cond.value ?? '').trim().toLowerCase();
+                });
+                return match;
+              });
+
+              if (jumpRule && jumpRule.targetPageId) {
+                const pageIdx = pages.findIndex((p) => p.id === jumpRule.targetPageId);
+                if (pageIdx !== -1) {
+                  targetStepIndex = pageIdx;
+                  toast.current?.show({
+                    severity: 'info',
+                    summary: 'Page Jump Rule',
+                    detail: `Redirected to ${pages[pageIdx].title} based on your answer.`,
+                    life: 2500,
+                  });
+                }
+              }
+
+              if (targetStepIndex < pages.length) {
+                setActiveStepIndex(targetStepIndex);
+              }
+            };
 
             return (
               <FormikForm className="fb-preview__body">
-                <FormikFormulaRunner fields={activeFields} values={values} setFieldValue={setFieldValue} />
-                <Row>
-                  {visibleFields.map((field) => (
-                    <Col md={12} key={field.id}>
+                {/* <FormikFormulaRunner fields={activeFields} values={values} setFieldValue={setFieldValue} /> */}
+
+                {/* 1. Render Sections for Current Page */}
+                {currentStepSections.map((sec) => {
+                  const secFields = currentStepFields.filter((f) => f.sectionId === sec.id);
+                  if (secFields.length === 0) return null;
+                  return (
+                    <RenderedSection
+                      key={sec.id}
+                      sectionTitle={sec.title}
+                      sectionDesc={sec.description}
+                      isCollapsible={sec.isCollapsible}
+                    >
+                      <Row className="g-3">
+                        {secFields.map((field) => (
+                          <Col md={field.columnSpan || 12} key={field.id}>
+                            <RenderedField
+                              field={field}
+                              touched={touched}
+                              errors={errors}
+                              values={values}
+                              setFieldValue={setFieldValue}
+                              handleBlur={handleBlur}
+                            />
+                          </Col>
+                        ))}
+                      </Row>
+                    </RenderedSection>
+                  );
+                })}
+
+                {/* 2. Render Un-sectioned Fields for Current Page */}
+                <Row className="g-3">
+                  {unsectionedFields.map((field) => (
+                    <Col md={field.columnSpan || 12} key={field.id}>
                       <RenderedField
                         field={field}
                         touched={touched}
@@ -687,9 +891,36 @@ const FormRenderer: React.FC<FormRendererProps> = ({ formDefinition }) => {
                     </Col>
                   ))}
                 </Row>
-                <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--fb-border-light)' }}>
-                  <Button variant="outline-secondary" type="reset">Clear</Button>
-                  <Button variant="primary" type="submit">Submit Form</Button>
+
+                {/* Stepper Navigation Buttons */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, marginTop: 24, paddingTop: 16, borderTop: '1px solid var(--fb-border-light)' }}>
+                  <div>
+                    {!isFirstStep && (
+                      <Button
+                        variant="outline-secondary"
+                        type="button"
+                        onClick={() => setActiveStepIndex(activeStepIndex - 1)}
+                      >
+                        <i className="pi pi-arrow-left me-1" /> Previous Step
+                      </Button>
+                    )}
+                  </div>
+
+                  <div style={{ display: 'flex', gap: 10 }}>
+                    <Button variant="outline-secondary" type="reset">
+                      Clear Form
+                    </Button>
+
+                    {!isLastStep ? (
+                      <Button variant="primary" type="button" onClick={handleNextStep}>
+                        Next Step <i className="pi pi-arrow-right ms-1" />
+                      </Button>
+                    ) : (
+                      <Button variant="success" type="submit">
+                        <i className="pi pi-check me-1" /> Submit Form
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </FormikForm>
             );
@@ -701,3 +932,4 @@ const FormRenderer: React.FC<FormRendererProps> = ({ formDefinition }) => {
 };
 
 export default FormRenderer;
+

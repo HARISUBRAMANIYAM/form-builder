@@ -184,6 +184,9 @@ export interface FormulaConfig {
   readOnlyCalculated?: boolean;
 }
 
+// ─── Grid Column Layout Config ───
+export type ColumnSpan = 12 | 6 | 4 | 3; // 12=100%, 6=50%, 4=33%, 3=25%
+
 // ─── Core Form Field ───
 
 export interface FormField {
@@ -195,6 +198,11 @@ export interface FormField {
   fieldName: string;
   /** The widget type */
   fieldType: FieldType;
+
+  // Page, Section, and Grid Column links
+  pageId?: string;
+  sectionId?: string;
+  columnSpan?: ColumnSpan;
 
   // Common config
   isMandatory: boolean;
@@ -211,7 +219,7 @@ export interface FormField {
   config: FieldConfig;
 }
 
-// ─── Branching Rules (Phase 2) ───
+// ─── Branching Rules (Phase 2 & Phase 3) ───
 
 export interface BranchingCondition {
   fieldId: string;
@@ -221,22 +229,32 @@ export interface BranchingCondition {
 
 export interface BranchingRule {
   id: string;
-  /** When ALL conditions are met … */
+  /** When ALL or ANY conditions are met … */
   conditions: BranchingCondition[];
   conditionLogic: 'AND' | 'OR';
-  /** … show / hide these field IDs */
-  action: 'show' | 'hide';
+  /** … show / hide fields OR jump to a specific page */
+  action: 'show' | 'hide' | 'jump_to_page';
   targetFieldIds: string[];
+  targetPageId?: string;
 }
 
-// ─── Form Section (optional grouping) ───
+// ─── Form Page & Section (Multi-Step & Grouping) ───
 
-export interface FormSection {
+export interface FormPage {
   id: string;
   title: string;
   description?: string;
-  fieldIds: string[];
+  displayOrder: number;
+}
+
+export interface FormSection {
+  id: string;
+  pageId: string;
+  title: string;
+  description?: string;
+  displayOrder: number;
   isCollapsible?: boolean;
+  defaultCollapsed?: boolean;
 }
 
 // ─── Top-level Form Definition ───
@@ -249,6 +267,7 @@ export interface FormDefinition {
   createdAt: string;
   updatedAt: string;
   fields: FormField[];
+  pages?: FormPage[];
   sections?: FormSection[];
   branchingRules?: BranchingRule[];
 }

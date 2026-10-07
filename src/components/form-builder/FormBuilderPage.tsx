@@ -14,7 +14,6 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { Toast } from 'primereact/toast';
-
 import { FIELD_TYPE_MAP } from '../../constants/fieldTypeRegistry';
 import { useFormBuilderStore } from '../../store/useFormBuilderStore';
 
@@ -23,15 +22,45 @@ import FormCanvas from './FormCanvas';
 import PropertiesPanel from './PropertiesPanel';
 import BranchingRulesPanel from './BranchingRulesPanel';
 import FormRenderer from '../form-renderer/FormRenderer';
-
 import './FormBuilder.css';
 import type { FieldType, BuilderView } from '../../types/formBuilder.types';
 import { useShallow } from 'zustand/shallow';
 
 // ─── JSON View ───────────────────────────────────────────────────────
 
+const formatJson = (value: string) => {
+  try {
+    return JSON.stringify(JSON.parse(value), null, 2);
+  } catch {
+    return value;
+  }
+};
+
+const highlightJson = (value: string) =>
+  value
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(
+      /("(\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*"(?=\s*:))|("(\\u[a-fA-F0-9]{4}|\\[^u]|[^\\"])*")|\b(true|false)\b|\b(null)\b|-?\b\d+(?:\.\d+)?(?:[eE][+-]?\d+)?\b/g,
+      (token) => {
+        let className = 'json-number';
+
+        if (token.startsWith('"')) {
+          className = token.endsWith(':') ? 'json-key' : 'json-string';
+        } else if (token === 'true' || token === 'false') {
+          className = 'json-boolean';
+        } else if (token === 'null') {
+          className = 'json-null';
+        }
+
+        return `<span class="${className}">${token}</span>`;
+      }
+    );
+
 const JsonView: React.FC = () => {
-  const json = useFormBuilderStore((s) => s.getFormDefinitionJson());
+  const rawJson = useFormBuilderStore((s) => s.getFormDefinitionJson());
+  const json = formatJson(rawJson);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(json);
@@ -40,36 +69,52 @@ const JsonView: React.FC = () => {
   const handleDownload = () => {
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'form-definition.json';
-    a.click();
+    const anchor = document.createElement('a');
+
+    anchor.href = url;
+    anchor.download = 'form-definition.json';
+    anchor.click();
+
     URL.revokeObjectURL(url);
   };
 
   return (
     <div className="fb-json-view">
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+      <div className="fb-json-toolbar">
         <div>
-          <h5 style={{ margin: 0, fontWeight: 700, color: 'var(--fb-text-primary)' }}>Form Definition JSON</h5>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--fb-text-muted)' }}>
-            The raw metadata schema that drives this form
-          </p>
+          <h5>Form Definition JSON</h5>
+          <p>The raw metadata schema that drives this form</p>
         </div>
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button className="fb-action-btn fb-action-btn-secondary" onClick={handleCopy}>
-            <i className="pi pi-copy" /> Copy
+
+        <div className="fb-json-actions">
+          <button
+            className="fb-action-btn fb-action-btn-secondary"
+            onClick={handleCopy}
+          >
+            <i className="pi pi-copy" />
+            Copy
           </button>
-          <button className="fb-action-btn fb-action-btn-primary" onClick={handleDownload}>
-            <i className="pi pi-download" /> Download
+
+          <button
+            className="fb-action-btn fb-action-btn-primary"
+            onClick={handleDownload}
+          >
+            <i className="pi pi-download" />
+            Download
           </button>
         </div>
       </div>
-      {/* <pre>{json}</pre> */}
+
+      <pre className="fb-json-code">
+        <code
+          dangerouslySetInnerHTML={{
+            __html: highlightJson(json),
+          }}
+        />
+      </pre>
     </div>
   );
 };
-
 // ─── Drag Overlay Preview ────────────────────────────────────────────
 
 const DragPreview: React.FC<{ fieldType: FieldType }> = ({ fieldType }) => {
@@ -111,28 +156,28 @@ const FormBuilderPage: React.FC = () => {
   const [activeView, setActiveView] = useState<BuilderView>('builder');
   const [draggedPaletteType, setDraggedPaletteType] = useState<FieldType | null>(null);
 
-const {
-  formDefinition,
-  setFormName,
-  // setFormDescription,
-  addField,
-  reorderFields,
-  resetForm,
-  getFormDefinitionJson,
-  showBranchingPanel,
-  toggleBranchingPanel,
-} = useFormBuilderStore(
-  useShallow((s) => ({
-    formDefinition: s.formDefinition,
-    setFormName: s.setFormName,
-    addField: s.addField,
-    reorderFields: s.reorderFields,
-    resetForm: s.resetForm,
-    getFormDefinitionJson: s.getFormDefinitionJson,
-    showBranchingPanel: s.showBranchingPanel,
-    toggleBranchingPanel: s.toggleBranchingPanel,
-  }))
-);
+  const {
+    formDefinition,
+    setFormName,
+    // setFormDescription,
+    addField,
+    reorderFields,
+    resetForm,
+    getFormDefinitionJson,
+    showBranchingPanel,
+    toggleBranchingPanel,
+  } = useFormBuilderStore(
+    useShallow((s) => ({
+      formDefinition: s.formDefinition,
+      setFormName: s.setFormName,
+      addField: s.addField,
+      reorderFields: s.reorderFields,
+      resetForm: s.resetForm,
+      getFormDefinitionJson: s.getFormDefinitionJson,
+      showBranchingPanel: s.showBranchingPanel,
+      toggleBranchingPanel: s.toggleBranchingPanel,
+    }))
+  );
 
   // ── DnD Sensors ──
   const sensors = useSensors(

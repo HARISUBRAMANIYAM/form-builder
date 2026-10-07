@@ -75,6 +75,19 @@ const FieldCard: React.FC<FieldCardProps> = ({ field, isSelected }) => {
         <div className="fb-field-card__meta">
           <span className="fb-field-card__code">{field.fieldCode}</span>
           <span className="fb-badge fb-badge-type">{registryEntry?.label ?? field.fieldType}</span>
+          {field.columnSpan && field.columnSpan < 12 && (
+            <span
+              className="fb-badge"
+              style={{
+                background: 'var(--fb-primary-ghost)',
+                color: 'var(--fb-primary)',
+                fontWeight: 600,
+              }}
+            >
+              <i className="pi pi-th-large me-1" style={{ fontSize: '8px' }} />
+              {field.columnSpan === 6 ? '50% (6/12)' : field.columnSpan === 4 ? '33% (4/12)' : '25% (3/12)'}
+            </span>
+          )}
           {field.isMandatory && (
             <span className="fb-badge fb-badge-required">
               <i className="pi pi-asterisk" style={{ fontSize: '7px' }} /> Required

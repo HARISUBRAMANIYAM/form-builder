@@ -171,9 +171,11 @@ const TypeSpecificConfig: React.FC<{ field: FormField }> = ({ field }) => {
 // ─── Properties Panel ────────────────────────────────────────────────
 
 const PropertiesPanel: React.FC = () => {
-  const { selectedField, allFields, updateField, updateFieldConfig } = useFormBuilderStore(useShallow((s) => ({
+  const { selectedField, allFields, pages, sections, updateField, updateFieldConfig } = useFormBuilderStore(useShallow((s) => ({
     selectedField: s.getSelectedField(),
     allFields: s.formDefinition.fields,
+    pages: s.formDefinition.pages ?? [{ id: 'page-1', title: 'Page 1', displayOrder: 0 }],
+    sections: s.formDefinition.sections ?? [],
     updateField: s.updateField,
     updateFieldConfig: s.updateFieldConfig,
   })));
@@ -343,6 +345,85 @@ const PropertiesPanel: React.FC = () => {
                     </Col>
                   </Row>
                 )}
+
+                {/* Page Placement */}
+                <Row className="mb-2">
+                  <Col>
+                    <Form.Group controlId="prop-pageId">
+                      <Form.Label>Assign to Page / Step</Form.Label>
+                      <Form.Select
+                        value={selectedField.pageId || (pages[0]?.id ?? 'page-1')}
+                        onChange={(e) => updateField(selectedField.id, { pageId: e.target.value, sectionId: undefined })}
+                        className="form-select text-light bg-dark border-secondary"
+                      >
+                        {pages.map((p, idx) => (
+                          <option key={p.id} value={p.id}>
+                            Step {idx + 1}: {p.title}
+                          </option>
+                        ))}
+                      </Form.Select>
+                    </Form.Group>
+                  </Col>
+                </Row>
+
+                {/* Section Placement */}
+                {sections.filter((s) => s.pageId === (selectedField.pageId || pages[0]?.id)).length > 0 && (
+                  <Row className="mb-2">
+                    <Col>
+                      <Form.Group controlId="prop-sectionId">
+                        <Form.Label>Assign to Section</Form.Label>
+                        <Form.Select
+                          value={selectedField.sectionId || ''}
+                          onChange={(e) => updateField(selectedField.id, { sectionId: e.target.value || undefined })}
+                          className="form-select"
+                        >
+                          <option value="">(No Section - Direct in Page)</option>
+                          {sections
+                            .filter((s) => s.pageId === (selectedField.pageId || pages[0]?.id))
+                            .map((s) => (
+                              <option key={s.id} value={s.id}>
+                                📁 {s.title}
+                              </option>
+                            ))}
+                        </Form.Select>
+                      </Form.Group>
+                    </Col>
+                  </Row>
+                )}
+
+                {/* Grid Column Width (Bootstrap Spacing) */}
+                <Row className="mb-2">
+                  <Col>
+                    <Form.Group controlId="prop-columnSpan">
+                      <Form.Label>Grid Column Width (Bootstrap)</Form.Label>
+                      <div className="d-flex gap-1 mt-1">
+                        {[
+                          { span: 12, label: '100%', sub: 'Full Row', icon: 'pi-square' },
+                          { span: 6, label: '50%', sub: '2 / Row', icon: 'pi-th-large' },
+                          { span: 4, label: '33%', sub: '3 / Row', icon: 'pi-table' },
+                          { span: 3, label: '25%', sub: '4 / Row', icon: 'pi-grid' },
+                        ].map((opt) => {
+                          const isSelected = (selectedField.columnSpan || 12) === opt.span;
+                          return (
+                            <button
+                              key={opt.span}
+                              type="button"
+                              className={`btn btn-sm flex-fill d-flex flex-column align-items-center py-1 px-1 ${
+                                isSelected ? 'btn-primary text-white fw-bold' : 'btn-outline-secondary'
+                              }`}
+                              style={{ fontSize: '0.72rem', borderRadius: '6px' }}
+                              onClick={() => updateField(selectedField.id, { columnSpan: opt.span as any })}
+                            >
+                              <i className={`pi ${opt.icon} mb-1`} style={{ fontSize: '12px' }} />
+                              <span>{opt.label}</span>
+                              <span style={{ fontSize: '0.62rem', opacity: 0.8 }}>{opt.sub}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </Form.Group>
+                  </Col>
+                </Row>
               </div>
 
               <div className="fb-divider" />
