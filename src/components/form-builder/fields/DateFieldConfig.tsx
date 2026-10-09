@@ -17,6 +17,7 @@ const DateFieldConfig: React.FC = () => {
               <Form.Select
                 value={values.config?.quickDefault ?? ''}
                 onChange={(e) => setFieldValue('config.quickDefault', e.target.value)}
+                size="sm"
               >
                 <option value="">Custom / No default</option>
                 <option value="CURRENTDATE">Current Date</option>
@@ -31,6 +32,7 @@ const DateFieldConfig: React.FC = () => {
               <Form.Label>Min Date</Form.Label>
               <Form.Control
                 type="date"
+                size="sm"
                 value={values.config?.minDate ?? ''}
                 onChange={(e) => setFieldValue('config.minDate', e.target.value)}
               />
@@ -41,6 +43,7 @@ const DateFieldConfig: React.FC = () => {
               <Form.Label>Max Date</Form.Label>
               <Form.Control
                 type="date"
+                size="sm"
                 value={values.config?.maxDate ?? ''}
                 onChange={(e) => setFieldValue('config.maxDate', e.target.value)}
               />

@@ -415,12 +415,12 @@
   text-overflow: ellipsis;
 }
 
-.fb-field-card__meta {
-  display: flex;
+/* .fb-field-card__meta { */
+  /* display: flex;
   align-items: center;
   gap: 8px;
-  margin-top: 3px;
-}
+  margin-top: 3px; */
+/* } */
 
 .fb-field-card__code {
   font-size: 0.7rem;
@@ -644,7 +644,7 @@
 
 .fb-preview__card {
   width: 100%;
-  max-width: 700px;
+  /* max-width: 1200px; */
   background: var(--fb-surface);
   border-radius: var(--fb-radius-xl);
   box-shadow: var(--fb-shadow-lg);

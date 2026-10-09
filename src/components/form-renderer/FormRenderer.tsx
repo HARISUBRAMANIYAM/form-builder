@@ -194,7 +194,7 @@ const buildInitialValues = (fields: FormField[]): Record<string, any> => {
 
 // ─── Individual Field Renderer ──────────────────────────────────────────
 
-const RenderedField: React.FC<{
+export const RenderedField: React.FC<{
   field: FormField;
   touched: any; errors: any; values: any;
   setFieldValue: (name: string, val: any) => void;

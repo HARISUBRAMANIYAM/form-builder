@@ -354,7 +354,7 @@ const PropertiesPanel: React.FC = () => {
                       <Form.Select
                         value={selectedField.pageId || (pages[0]?.id ?? 'page-1')}
                         onChange={(e) => updateField(selectedField.id, { pageId: e.target.value, sectionId: undefined })}
-                        className="form-select text-light bg-dark border-secondary"
+                        className="form-select "
                       >
                         {pages.map((p, idx) => (
                           <option key={p.id} value={p.id}>
@@ -395,7 +395,7 @@ const PropertiesPanel: React.FC = () => {
                 <Row className="mb-2">
                   <Col>
                     <Form.Group controlId="prop-columnSpan">
-                      <Form.Label>Grid Column Width (Bootstrap)</Form.Label>
+                      <Form.Label>Grid Column Width</Form.Label>
                       <div className="d-flex gap-1 mt-1">
                         {[
                           { span: 12, label: '100%', sub: 'Full Row', icon: 'pi-square' },
@@ -408,11 +408,24 @@ const PropertiesPanel: React.FC = () => {
                             <button
                               key={opt.span}
                               type="button"
-                              className={`btn btn-sm flex-fill d-flex flex-column align-items-center py-1 px-1 ${
-                                isSelected ? 'btn-primary text-white fw-bold' : 'btn-outline-secondary'
-                              }`}
-                              style={{ fontSize: '0.72rem', borderRadius: '6px' }}
-                              onClick={() => updateField(selectedField.id, { columnSpan: opt.span as any })}
+                              className="btn btn-sm flex-fill d-flex flex-column align-items-center py-1 px-1"
+                              style={{
+                                fontSize: '0.72rem',
+                                borderRadius: '6px',
+                                borderColor: isSelected
+                                  ? 'var(--fb-primary)'
+                                  : 'var(--fb-primary-border)',
+                                backgroundColor: isSelected
+                                  ? 'var(--fb-primary)'
+                                  : 'var(--fb-primary-ghost)',
+                                color: isSelected
+                                  ? '#ffffff'
+                                  : 'var(--fb-primary)',
+                                fontWeight: isSelected ? 700 : 400,
+                              }}
+                              onClick={() =>
+                                updateField(selectedField.id, { columnSpan: opt.span as any })
+                              }
                             >
                               <i className={`pi ${opt.icon} mb-1`} style={{ fontSize: '12px' }} />
                               <span>{opt.label}</span>
